@@ -8,34 +8,35 @@ const HealthReport = () => {
   const fetchHealthData = async () => {
     setLoading(true);
     setError(null);
-  
+
     try {
       const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/process-health-data`;
-      console.log("Fetching from API:", apiUrl); // ✅ Logs the full API URL
-  
+      console.log("Fetching from API:", apiUrl); // ✅ Logs the API URL
+
       const response = await fetch(apiUrl, {
         headers: {
-          "Accept": "application/json",  // ✅ Ensures response is JSON
+          "Accept": "application/json", // ✅ Ensure response is JSON
         },
       });
-  
-      const text = await response.text();  // Read response as text
-      console.log("Raw Response:", text);  // ✅ Logs the raw response
-  
+
+      const text = await response.text(); // Read response as text
+      console.log("Raw Response:", text); // ✅ Logs raw response
+
       if (!response.ok) {
         throw new Error(`Failed to fetch health data: ${response.status} - ${response.statusText}`);
       }
-  
+
       const data = JSON.parse(text); // Convert text to JSON
+      console.log("Parsed Data Object:", data); // ✅ Logs parsed JSON
+
       setHealthData(data);
     } catch (error) {
       console.error("Fetch Error:", error);
       setError(error.message);
     }
-  
+
     setLoading(false);
-  };  
-  
+  };
 
   useEffect(() => {
     fetchHealthData();
@@ -54,12 +55,12 @@ const HealthReport = () => {
         {loading && <p className="text-center">Loading...</p>}
         {error && <p className="text-danger text-center">{error}</p>}
 
-        {healthData && (
+        {healthData && healthData.data && (
           <div className="flex-grow-1" style={{ overflowY: "auto" }}>
             <h4>Vitals</h4>
-            <p><strong>Pulse Rate:</strong> {healthData.pulseRate}</p>
-            <p><strong>Heart Rate:</strong> {healthData.heartRate}</p>
-            <p><strong>Body Temperature:</strong> {healthData.bodyTemperature} °F</p>
+            <p><strong>Pulse Rate:</strong> {healthData?.data?.pulseRate}</p>
+            <p><strong>Heart Rate:</strong> {healthData?.data?.heartRate}</p>
+            <p><strong>Body Temperature:</strong> {healthData?.data?.bodyTemperature} °F</p>
 
             <h4 className="mt-3">Possible Diagnosis</h4>
             <div
@@ -74,15 +75,17 @@ const HealthReport = () => {
               }}
             >
               <ul className="list-unstyled">
-                {healthData.diagnosis?.split("\n").map((disease, index) => (
-                  <li key={index}>{disease}</li>
-                )) || <li>No diagnosis available</li>}
+                {healthData?.data?.diagnosis
+                  ? healthData.data.diagnosis.split("\n").map((disease, index) => (
+                      <li key={index}>{disease}</li>
+                    ))
+                  : <li>No diagnosis available</li>}
               </ul>
             </div>
 
-            {healthData.alertStatus && (
+            {healthData?.data?.alertStatus && (
               <div className={`alert ${getAlertClass(healthData.isCritical)} mt-4`} role="alert">
-                {healthData.alertStatus}
+                {healthData.data.alertStatus}
               </div>
             )}
           </div>
